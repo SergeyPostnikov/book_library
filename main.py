@@ -1,4 +1,9 @@
 import requests
+import os
+from os.path import join
+from pathlib import Path
+
+BASE_DIR = Path(__file__).resolve().parent
 
 
 def get_logo():
@@ -10,18 +15,25 @@ def get_logo():
         f.write(response.content)
 
 
-def get_book(url, book_title):
+def get_book(url, book_title, directory='books'):
     response = requests.get(url)
     response.raise_for_status()
-    with open(f'{book_title}.txt', 'wb') as f:
+    os.makedirs(directory, exist_ok=True)
+    path_to_book = join(BASE_DIR, directory, f'{book_title}.txt')
+    
+    with open(path_to_book, 'wb') as f:
         f.write(response.content)
 
 
+def get_books(ids: list[int]):
+    for book_id in ids:
+        url = f'https://tululu.org/txt.php?id={book_id}'
+        get_book(url, f'{book_id}')
+
+
 def main():
-    get_book(
-        'https://tululu.org/txt.php?id=32168', 
-        'Пески Марса - Кларк Артур'
-        )
+    ids = [i for i in range(1, 11)]
+    get_books(ids)
 
 
 if __name__ == '__main__':
