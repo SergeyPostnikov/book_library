@@ -1,8 +1,17 @@
 import requests
 
 
+def get_logo():
+    url = 'https://dvmn.org/assets/img/logo.8d8f24edbb5f.svg'
+    response = requests.get(url)
+    response.raise_for_status()
+
+    with open('logo.svg', 'wb') as f:
+        f.write(response.content)
+
+
 def main():
-    pass
+    get_logo()
 
 
 if __name__ == '__main__':
