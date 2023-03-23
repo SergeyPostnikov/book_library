@@ -1,10 +1,12 @@
 import requests
 from requests.exceptions import HTTPError
+
 import os
 from os.path import join
 from pathlib import Path
 
 from bs4 import BeautifulSoup
+from pathvalidate import sanitize_filename
 
 BASE_DIR = Path(__file__).resolve().parent
 
@@ -20,14 +22,29 @@ def parse_book(book_id):
     response.raise_for_status()
 
     soup = BeautifulSoup(response.text, 'lxml')
-    book_title = (
-        soup.find('h1')
+    book_title, *args, author = (
+        soup
+        .find('h1')
         .text
-        .replace('\xa0', '')
-        .replace(':', '')
+        .split(':')
         )
-    # book_image = soup.find('div', class_='bookimage').find('img')['src']
-    return book_title 
+    # book_image = soup.find('div', class_='bookimage').find('img')['src'] 
+    return sanitize_filename(book_title.strip()) 
+
+
+def download_txt(url, filename, folder='books/'):
+
+    response = requests.get(url)
+    response.raise_for_status()
+
+    validated_filename = sanitize_filename(filename)
+    
+    os.makedirs(folder, exist_ok=True)
+    filepath = join(folder, f'{validated_filename}.txt')
+    
+    with open(filepath, 'wb') as f:
+        f.write(response.content)
+    return filepath
 
 
 def save_book(url, book_title, directory='books'):
@@ -52,9 +69,21 @@ def get_books(ids: list[int]):
 
 
 def main():
-    ids = [i for i in range(1, 11)]
-    get_books(ids)
+    # ids = [i for i in range(1, 2)]
+    # get_books(ids)
     # print(parse_book(32169))
+    # filename = parse_book(32169)
+    # print(download_txt('https://tululu.org/txt.php?id=32169', filename))
+    url = 'http://tululu.org/txt.php?id=1'
+
+    filepath = download_txt(url, 'Алиби')
+    print(filepath)  # Выведется books/Алиби.txt
+
+    filepath = download_txt(url, 'Али/би', folder='books/')
+    print(filepath)  # Выведется books/Алиби.txt
+
+    filepath = download_txt(url, 'Али\\би', folder='txt/')
+    print(filepath)  # Выведется txt/Алиби.txt
 
 
 if __name__ == '__main__':
