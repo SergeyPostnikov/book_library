@@ -27,23 +27,42 @@ def check_for_redirect(response):
 def parse_book(book_id):
     url = f'https://tululu.org/b{book_id}/'
     response = requests.get(url)
+    check_for_redirect(response)
     response.raise_for_status()
 
     soup = BeautifulSoup(response.text, 'lxml')
-    try:
-        book_image = soup.find('div', class_='bookimage').find('img')['src']
-    except AttributeError:
+
+    book_image = soup.find('div', class_='bookimage')
+    if book_image:
+        book_image = book_image.find('img')['src']
+    else:
         book_image = '/images/nopic.gif'
 
-    try:
-        div_texts = soup.find_all('div', class_='texts')
-        comments = [comment.find('span', class_='black').text for comment in div_texts]
-    except AttributeError:
-        comments = []
+    comments = []
+    for comment in soup.find_all('div', class_='texts'):
+        comment_text = comment.find('span', class_='black')
+        if comment_text:
+            comments.append(comment_text.text)
 
-    book_title, *args = soup.find('h1').text.split(':')
+    genres = []
+    span_d_book = soup.find('span', class_='d_book')
+    if span_d_book:
+        for genre in span_d_book.find_all('a'):
+            genres.append(genre.text)
 
-    return book_title.strip(), urljoin('https://tululu.org/', book_image), comments
+    title_parts = soup.find('h1').text.split(':')
+    book_title = title_parts[0].strip()
+    author = title_parts[2].strip()
+
+    book_data = {
+        'title': book_title,
+        'author': author,
+        'image_url': urljoin('https://tululu.org/', book_image),
+        'comments': comments,
+        'genres': genres,
+    }
+    
+    return book_data
 
 
 def download_txt(url, filename, folder='books/'):
@@ -90,15 +109,18 @@ def save_book(url, book_title, directory='books'):
         f.write(response.content)
 
 
-def get_books(ids: list[int]):
+def get_books(ids):
     for book_id in ids:
         url = f'https://tululu.org/txt.php?id={book_id}'
         try:
-            title, image_url, comments = parse_book(book_id)
-            book_title = f'{book_id}. {title}'
-            # download_txt(url, book_title)
-            # download_image(image_url)
-            print(comments)
+            book_data = parse_book(book_id)
+            book_title = f'{book_id}. {book_data["title"]}'
+            download_txt(url, book_title)
+            download_image(book_data["image_url"])
+            print(book_data["title"])
+            print(book_data["author"])
+            print(book_data["genres"])
+            print()
         except HTTPError:
             print(f'Book with id {book_id}, does not exist')
 
