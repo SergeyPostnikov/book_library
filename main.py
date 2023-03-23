@@ -35,13 +35,15 @@ def parse_book(book_id):
     except AttributeError:
         book_image = '/images/nopic.gif'
 
-    book_title, *args = (
-        soup
-        .find('h1')
-        .text
-        .split(':')
-        )
-    return book_title.strip(), urljoin('https://tululu.org/', book_image)
+    try:
+        div_texts = soup.find_all('div', class_='texts')
+        comments = [comment.find('span', class_='black').text for comment in div_texts]
+    except AttributeError:
+        comments = []
+
+    book_title, *args = soup.find('h1').text.split(':')
+
+    return book_title.strip(), urljoin('https://tululu.org/', book_image), comments
 
 
 def download_txt(url, filename, folder='books/'):
@@ -92,10 +94,11 @@ def get_books(ids: list[int]):
     for book_id in ids:
         url = f'https://tululu.org/txt.php?id={book_id}'
         try:
-            title, image_url = parse_book(book_id)
+            title, image_url, comments = parse_book(book_id)
             book_title = f'{book_id}. {title}'
-            download_txt(url, book_title)
-            download_image(image_url)
+            # download_txt(url, book_title)
+            # download_image(image_url)
+            print(comments)
         except HTTPError:
             print(f'Book with id {book_id}, does not exist')
 
