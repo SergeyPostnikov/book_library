@@ -4,12 +4,19 @@ from requests.exceptions import HTTPError
 import os
 from os.path import join
 from pathlib import Path
-from urllib.parse import urljoin
+from urllib.parse import urljoin, urlparse, unquote
 
 from bs4 import BeautifulSoup
 from pathvalidate import sanitize_filename
 
 BASE_DIR = Path(__file__).resolve().parent
+
+
+def get_filename(url):
+    path = urlparse(url).path
+    row_name = path.split("/")[-1]
+    filename = unquote(row_name)
+    return filename
 
 
 def check_for_redirect(response):
@@ -53,6 +60,23 @@ def download_txt(url, filename, folder='books/'):
     return filepath
 
 
+def download_image(url, folder='images/'):
+
+    filename = get_filename(url)
+    response = requests.get(url)
+    check_for_redirect(response)
+    response.raise_for_status()
+
+    validated_filename = sanitize_filename(filename)
+    
+    os.makedirs(folder, exist_ok=True)
+    filepath = join(folder, f'{validated_filename}.jpg')
+    
+    with open(filepath, 'wb') as f:
+        f.write(response.content)
+    return filepath
+
+
 def save_book(url, book_title, directory='books'):
     response = requests.get(url)
     check_for_redirect(response)
@@ -68,10 +92,10 @@ def get_books(ids: list[int]):
     for book_id in ids:
         url = f'https://tululu.org/txt.php?id={book_id}'
         try:
-            title, book_image = parse_book(book_id)
+            title, image_url = parse_book(book_id)
             book_title = f'{book_id}. {title}'
             download_txt(url, book_title)
-            print(book_image)
+            download_image(image_url)
         except HTTPError:
             print(f'Book with id {book_id}, does not exist')
 
