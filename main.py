@@ -22,19 +22,24 @@ def parse_book(book_id):
     response.raise_for_status()
 
     soup = BeautifulSoup(response.text, 'lxml')
-    book_title, *args, author = (
+    try:
+        book_image = soup.find('div', class_='bookimage').find('img')['src']
+    except AttributeError:
+        book_image = '/images/nopic.gif'
+    
+    book_title, *args = (
         soup
         .find('h1')
         .text
         .split(':')
         )
-    # book_image = soup.find('div', class_='bookimage').find('img')['src'] 
-    return sanitize_filename(book_title.strip()) 
+    return book_title.strip(), book_image
 
 
 def download_txt(url, filename, folder='books/'):
 
     response = requests.get(url)
+    check_for_redirect(response)
     response.raise_for_status()
 
     validated_filename = sanitize_filename(filename)
@@ -62,28 +67,17 @@ def get_books(ids: list[int]):
     for book_id in ids:
         url = f'https://tululu.org/txt.php?id={book_id}'
         try:
-            book_title = parse_book(book_id)
-            save_book(url, book_title)
+            title, book_image = parse_book(book_id)
+            book_title = f'{book_id}. {title}'
+            download_txt(url, book_title)
+            print(book_image)
         except HTTPError:
-            print('Book with id {book_id}, does not exist')
+            print(f'Book with id {book_id}, does not exist')
 
 
 def main():
-    # ids = [i for i in range(1, 2)]
-    # get_books(ids)
-    # print(parse_book(32169))
-    # filename = parse_book(32169)
-    # print(download_txt('https://tululu.org/txt.php?id=32169', filename))
-    url = 'http://tululu.org/txt.php?id=1'
-
-    filepath = download_txt(url, 'Алиби')
-    print(filepath)  # Выведется books/Алиби.txt
-
-    filepath = download_txt(url, 'Али/би', folder='books/')
-    print(filepath)  # Выведется books/Алиби.txt
-
-    filepath = download_txt(url, 'Али\\би', folder='txt/')
-    print(filepath)  # Выведется txt/Алиби.txt
+    ids = [i for i in range(1, 11)]
+    get_books(ids)
 
 
 if __name__ == '__main__':
