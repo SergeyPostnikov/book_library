@@ -4,6 +4,7 @@ from requests.exceptions import HTTPError
 import os
 from os.path import join
 from pathlib import Path
+from urllib.parse import urljoin
 
 from bs4 import BeautifulSoup
 from pathvalidate import sanitize_filename
@@ -26,14 +27,14 @@ def parse_book(book_id):
         book_image = soup.find('div', class_='bookimage').find('img')['src']
     except AttributeError:
         book_image = '/images/nopic.gif'
-    
+
     book_title, *args = (
         soup
         .find('h1')
         .text
         .split(':')
         )
-    return book_title.strip(), book_image
+    return book_title.strip(), urljoin('https://tululu.org/', book_image)
 
 
 def download_txt(url, filename, folder='books/'):
