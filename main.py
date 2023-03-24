@@ -129,10 +129,20 @@ def get_books(ids):
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Описание что делает программа')
-    parser.parse_args()
-    parser.add_argument('-s', '--start_id', help='Стартовый id', default=1)
-    parser.add_argument('-e', '--end_id', help='Конечный id', default=10)    
+    parser = argparse.ArgumentParser(description='')
+
+    parser.add_argument(
+            '--start_id', 
+            type=int, 
+            help='an integer for the starting id',
+            default=1
+        )
+    parser.add_argument(
+            '--end_id', 
+            type=int, 
+            help='an integer for the ending id',
+            default=10)   
+    
     args = parser.parse_args()
     ids = [i for i in range(args.start_id, args.end_id + 1)]
     get_books(ids)
