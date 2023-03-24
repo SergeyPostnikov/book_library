@@ -112,20 +112,19 @@ def save_book(url, book_title, directory='books'):
         f.write(response.content)
 
 
-def get_books(ids):
-    for book_id in ids:
-        url = f'https://tululu.org/txt.php?id={book_id}'
-        try:
-            book_data = parse_book(book_id)
-            book_title = f'{book_id}. {book_data["title"]}'
-            download_txt(url, book_title)
-            download_image(book_data["image_url"])
-            print(book_data["title"])
-            print(book_data["author"])
-            print(book_data["genres"])
-            print()
-        except HTTPError:
-            print(f'Book with id {book_id}, does not exist')
+def get_book(book_id):
+    url = f'https://tululu.org/txt.php?id={book_id}'
+    try:
+        book_data = parse_book(book_id)
+        book_title = f'{book_id}. {book_data["title"]}'
+        download_txt(url, book_title)
+        download_image(book_data["image_url"])
+        print(book_data["title"])
+        print(book_data["author"])
+        print(book_data["genres"])
+        print()
+    except HTTPError:
+        print(f'Book with id {book_id}, does not exist')
 
 
 def main():
@@ -144,8 +143,8 @@ def main():
             default=10)   
     
     args = parser.parse_args()
-    ids = [i for i in range(args.start_id, args.end_id + 1)]
-    get_books(ids)
+    for book_id in range(args.start_id, args.end_id + 1):
+        get_book(book_id)
 
 
 if __name__ == '__main__':
