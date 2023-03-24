@@ -9,6 +9,9 @@ from urllib.parse import urljoin, urlparse, unquote
 from bs4 import BeautifulSoup
 from pathvalidate import sanitize_filename
 
+import argparse
+
+
 BASE_DIR = Path(__file__).resolve().parent
 
 
@@ -126,7 +129,12 @@ def get_books(ids):
 
 
 def main():
-    ids = [i for i in range(1, 11)]
+    parser = argparse.ArgumentParser(description='Описание что делает программа')
+    parser.parse_args()
+    parser.add_argument('-s', '--start_id', help='Стартовый id', default=1)
+    parser.add_argument('-e', '--end_id', help='Конечный id', default=10)    
+    args = parser.parse_args()
+    ids = [i for i in range(args.start_id, args.end_id + 1)]
     get_books(ids)
 
 
