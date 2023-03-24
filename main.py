@@ -27,8 +27,9 @@ def check_for_redirect(response):
         raise HTTPError
 
 
-def parse_book(book_id):
-    url = f'https://tululu.org/b{book_id}/'
+def parse_book(book_id):    
+    base_url = 'https://tululu.org/'
+    url = urljoin(base_url, f'b{book_id}/')
     response = requests.get(url)
     check_for_redirect(response)
     response.raise_for_status()
@@ -68,9 +69,11 @@ def parse_book(book_id):
     return book_data
 
 
-def download_txt(url, filename, folder='books/'):
-
-    response = requests.get(url)
+def download_txt(book_id, filename, folder='books/'):
+    payload = {'id': 'book_id'}
+    url = 'https://tululu.org/txt.php'
+    
+    response = requests.get(url, params=payload)
     check_for_redirect(response)
     response.raise_for_status()
 
@@ -101,23 +104,11 @@ def download_image(url, folder='images/'):
     return filepath
 
 
-def save_book(url, book_title, directory='books'):
-    response = requests.get(url)
-    check_for_redirect(response)
-    response.raise_for_status()
-    os.makedirs(directory, exist_ok=True)
-    path_to_book = join(BASE_DIR, directory, f'{book_title}.txt')
-    
-    with open(path_to_book, 'wb') as f:
-        f.write(response.content)
-
-
 def get_book(book_id):
-    url = f'https://tululu.org/txt.php?id={book_id}'
     try:
         book_data = parse_book(book_id)
         book_title = f'{book_id}. {book_data["title"]}'
-        download_txt(url, book_title)
+        download_txt(book_id, book_title)
         download_image(book_data["image_url"])
         print(book_data["title"])
         print(book_data["author"])
