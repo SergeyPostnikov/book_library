@@ -24,10 +24,47 @@ def get_filename(url):
 
 def check_for_redirect(response):
     if response.history:
-        raise HTTPError
+        raise requests.exceptions.HTTPError('URL has been redirected')
 
 
-def parse_book(book_id):    
+def get_book_title(soup):
+    title_parts = soup.find('h1').text.split(':')
+    return title_parts[0].strip()
+
+
+def get_author(soup):
+    title_parts = soup.find('h1').text.split(':')
+    return title_parts[2].strip()
+
+
+def get_book_image(url, soup):
+    book_image = soup.find('div', class_='bookimage')
+    if book_image:
+        book_image = urljoin(url, book_image.find('img')['src'])
+    else:
+        book_image = '/images/nopic.gif'
+    return book_image
+
+
+def get_comments(soup):
+    comments = []
+    for comment in soup.find_all('div', class_='texts'):
+        comment_text = comment.find('span', class_='black')
+        if comment_text:
+            comments.append(comment_text.text)
+    return comments
+
+
+def get_genres(soup):
+    genres = []
+    span_d_book = soup.find('span', class_='d_book')
+    if span_d_book:
+        for genre in span_d_book.find_all('a'):
+            genres.append(genre.text)
+    return genres
+
+
+def parse_book(book_id):
     base_url = 'https://tululu.org/'
     url = urljoin(base_url, f'b{book_id}/')
     response = requests.get(url)
@@ -36,34 +73,12 @@ def parse_book(book_id):
 
     soup = BeautifulSoup(response.text, 'lxml')
 
-    book_image = soup.find('div', class_='bookimage')
-    if book_image:
-        book_image = book_image.find('img')['src']
-    else:
-        book_image = '/images/nopic.gif'
-
-    comments = []
-    for comment in soup.find_all('div', class_='texts'):
-        comment_text = comment.find('span', class_='black')
-        if comment_text:
-            comments.append(comment_text.text)
-
-    genres = []
-    span_d_book = soup.find('span', class_='d_book')
-    if span_d_book:
-        for genre in span_d_book.find_all('a'):
-            genres.append(genre.text)
-
-    title_parts = soup.find('h1').text.split(':')
-    book_title = title_parts[0].strip()
-    author = title_parts[2].strip()
-
     book_data = {
-        'title': book_title,
-        'author': author,
-        'image_url': urljoin('https://tululu.org/', book_image),
-        'comments': comments,
-        'genres': genres,
+        'title': get_book_title(soup),
+        'author': get_author(soup),
+        'image_url': get_book_image(url, soup),
+        'comments': get_comments(soup),
+        'genres': get_genres(soup),
     }
     
     return book_data
@@ -106,13 +121,13 @@ def download_image(url, folder='images/'):
 
 def get_book(book_id):
     try:
-        book_data = parse_book(book_id)
-        book_title = f'{book_id}. {book_data["title"]}'
+        book_info = parse_book(book_id)
+        book_title = f'{book_id}. {book_info["title"]}'
         download_txt(book_id, book_title)
-        download_image(book_data["image_url"])
-        print(book_data["title"])
-        print(book_data["author"])
-        print(book_data["genres"])
+        download_image(book_info["image_url"])
+        print(book_info["title"])
+        print(book_info["author"])
+        print(book_info["genres"])
         print()
     except HTTPError:
         print(f'Book with id {book_id}, does not exist')
