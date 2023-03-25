@@ -1,5 +1,5 @@
 import requests
-from requests.exceptions import HTTPError
+from requests.exceptions import HTTPError, ConnectionError
 
 import os
 from os.path import join
@@ -10,6 +10,8 @@ from bs4 import BeautifulSoup
 from pathvalidate import sanitize_filename
 
 import argparse
+
+from retry import retry
 
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -24,7 +26,7 @@ def get_filename(url):
 
 def check_for_redirect(response):
     if response.history:
-        raise requests.exceptions.HTTPError('URL has been redirected')
+        raise HTTPError('URL has been redirected')
 
 
 def get_book_title(soup):
@@ -64,6 +66,7 @@ def get_genres(soup):
     return genres
 
 
+@retry(ConnectionError, tries=3, delay=20)
 def parse_book(book_id):
     base_url = 'https://tululu.org/'
     url = urljoin(base_url, f'b{book_id}/')
@@ -73,7 +76,7 @@ def parse_book(book_id):
 
     soup = BeautifulSoup(response.text, 'lxml')
 
-    book_data = {
+    book_info = {
         'title': get_book_title(soup),
         'author': get_author(soup),
         'image_url': get_book_image(url, soup),
@@ -81,13 +84,13 @@ def parse_book(book_id):
         'genres': get_genres(soup),
     }
     
-    return book_data
+    return book_info
 
 
+@retry(ConnectionError, tries=3, delay=20)
 def download_txt(book_id, filename, folder='books/'):
-    payload = {'id': 'book_id'}
+    payload = {'id': book_id}
     url = 'https://tululu.org/txt.php'
-    
     response = requests.get(url, params=payload)
     check_for_redirect(response)
     response.raise_for_status()
@@ -102,6 +105,7 @@ def download_txt(book_id, filename, folder='books/'):
     return filepath
 
 
+@retry(ConnectionError, tries=3, delay=20)
 def download_image(url, folder='images/'):
 
     filename = get_filename(url)
@@ -130,7 +134,9 @@ def get_book(book_id):
         print(book_info["genres"])
         print()
     except HTTPError:
-        print(f'Book with id {book_id}, does not exist')
+        print(f'Book with id {book_id}, does not exist.')
+    except ConnectionError:
+        print(f'connection lost on book with id: {book_id}.')
 
 
 def main():
