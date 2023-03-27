@@ -31,12 +31,9 @@ def check_for_redirect(response):
 
 def get_book_title(soup):
     title_parts = soup.find('h1').text.split(':')
-    return title_parts[0].strip()
-
-
-def get_author(soup):
-    title_parts = soup.find('h1').text.split(':')
-    return title_parts[2].strip()
+    book_name = title_parts[0].strip()
+    book_author = title_parts[2].strip()
+    return book_name, book_author
 
 
 def get_book_image(url, soup):
@@ -75,10 +72,10 @@ def parse_book(book_id):
     response.raise_for_status()
 
     soup = BeautifulSoup(response.text, 'lxml')
-
+    book_name, book_author = get_book_title(soup)
     book_page = {
-        'title': get_book_title(soup),
-        'author': get_author(soup),
+        'title': book_name,
+        'author': book_author,
         'image_url': get_book_image(url, soup),
         'comments': get_comments(soup),
         'genres': get_genres(soup),
