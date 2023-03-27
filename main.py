@@ -15,6 +15,7 @@ from retry import retry
 
 
 BASE_DIR = Path(__file__).resolve().parent
+BASE_URL = 'https://tululu.org/'
 
 
 def get_filename(url):
@@ -36,12 +37,12 @@ def get_book_title(soup):
     return book_name, book_author
 
 
-def get_book_image(url, soup):
+def get_book_image(soup):
     book_image = soup.find('div', class_='bookimage')
     if book_image:
-        book_image = urljoin(url, book_image.find('img')['src'])
+        book_image = urljoin(BASE_URL, book_image.find('img')['src'])
     else:
-        book_image = '/images/nopic.gif'
+        book_image = urljoin(BASE_URL, '/images/nopic.gif')
     return book_image
 
 
@@ -63,20 +64,22 @@ def get_genres(soup):
     return genres
 
 
-@retry(ConnectionError, tries=3, delay=20)
-def parse_book(book_id):
-    base_url = 'https://tululu.org/'
-    url = urljoin(base_url, f'b{book_id}/')
+@retry(ConnectionError, tries=3, delay=10)
+def get_page(book_id):
+    url = urljoin(BASE_URL, f'b{book_id}/')
     response = requests.get(url)
     check_for_redirect(response)
     response.raise_for_status()
+    return response
 
+
+def parse_book(response):
     soup = BeautifulSoup(response.text, 'lxml')
     book_name, book_author = get_book_title(soup)
     book_page = {
         'title': book_name,
         'author': book_author,
-        'image_url': get_book_image(url, soup),
+        'image_url': get_book_image(soup),
         'comments': get_comments(soup),
         'genres': get_genres(soup),
     }
@@ -84,7 +87,7 @@ def parse_book(book_id):
     return book_page
 
 
-@retry(ConnectionError, tries=3, delay=20)
+@retry(ConnectionError, tries=3, delay=10)
 def download_txt(book_id, filename, folder='books/'):
     payload = {'id': book_id}
     url = 'https://tululu.org/txt.php'
@@ -102,7 +105,7 @@ def download_txt(book_id, filename, folder='books/'):
     return filepath
 
 
-@retry(ConnectionError, tries=3, delay=20)
+@retry(ConnectionError, tries=3, delay=10)
 def download_image(url, folder='images/'):
 
     filename = get_filename(url)
@@ -121,23 +124,17 @@ def download_image(url, folder='images/'):
 
 
 def get_book(book_id):
-    try:
-        book_page = parse_book(book_id)
-        book_title = f'{book_id}. {book_page["title"]}'
-        download_txt(book_id, book_title)
-        download_image(book_page["image_url"])
-        print(book_page["title"])
-        print(book_page["author"])
-        print(book_page["genres"])
-        print()
-    except HTTPError:
-        print(f'Book with id {book_id}, does not exist.')
-    except ConnectionError:
-        print(f'connection lost on book with id: {book_id}.')
+    row_page = get_page(book_id)
+    book_page = parse_book(row_page)
+    book_title = f'{book_id}. {book_page["title"]}'
+    download_txt(book_id, book_title)
+    download_image(book_page["image_url"])
+    print(book_page["title"])
+    print(book_page["author"])
+    print(book_page["genres"])
 
 
 def main():
-
     parser = argparse.ArgumentParser(
         prog='library parser',
         description='A script to download books and their covers from tululu.org',
@@ -158,7 +155,12 @@ def main():
     
     args = parser.parse_args()
     for book_id in range(args.start_id, args.end_id + 1):
-        get_book(book_id)
+        try:
+            get_book(book_id)
+        except HTTPError:
+            print(f'Book with id {book_id}, does not exist.')
+        except ConnectionError:
+            print(f'connection lost on book with id: {book_id}.')
 
 
 if __name__ == '__main__':
