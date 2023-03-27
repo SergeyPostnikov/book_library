@@ -26,7 +26,9 @@ Getting Started
 *   Install the required libraries by running the following command in a terminal:
 
 
-`pip install -r requirements.txt`
+```
+pip install -r requirements.txt
+```
 
 ### Executing program
 
@@ -34,10 +36,14 @@ Getting Started
 *   Run the following command:
 
 
-`python main.py --start_id 1 --end_id 10`
+```
+python main.py --start_id 1 --end_id 10
+```
 
 *   Replace the start\_id and end\_id arguments with the desired range of ids to download
 *   Alternatively, provide a single id to download a single book:
 
-`python main.py --start_id 1 --end_id 1`
+```
+python main.py --start_id 1 --end_id 1
+```
 

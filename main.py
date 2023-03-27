@@ -1,5 +1,5 @@
 import requests
-from requests.exceptions import HTTPError
+from requests.exceptions import HTTPError, ConnectionError
 
 import os
 from os.path import join
@@ -10,6 +10,8 @@ from bs4 import BeautifulSoup
 from pathvalidate import sanitize_filename
 
 import argparse
+
+from retry import retry
 
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -24,53 +26,72 @@ def get_filename(url):
 
 def check_for_redirect(response):
     if response.history:
-        raise HTTPError
+        raise HTTPError('URL has been redirected')
 
 
+def get_book_title(soup):
+    title_parts = soup.find('h1').text.split(':')
+    return title_parts[0].strip()
+
+
+def get_author(soup):
+    title_parts = soup.find('h1').text.split(':')
+    return title_parts[2].strip()
+
+
+def get_book_image(url, soup):
+    book_image = soup.find('div', class_='bookimage')
+    if book_image:
+        book_image = urljoin(url, book_image.find('img')['src'])
+    else:
+        book_image = '/images/nopic.gif'
+    return book_image
+
+
+def get_comments(soup):
+    comments = []
+    for comment in soup.find_all('div', class_='texts'):
+        comment_text = comment.find('span', class_='black')
+        if comment_text:
+            comments.append(comment_text.text)
+    return comments
+
+
+def get_genres(soup):
+    genres = []
+    span_d_book = soup.find('span', class_='d_book')
+    if span_d_book:
+        for genre in span_d_book.find_all('a'):
+            genres.append(genre.text)
+    return genres
+
+
+@retry(ConnectionError, tries=3, delay=20)
 def parse_book(book_id):
-    url = f'https://tululu.org/b{book_id}/'
+    base_url = 'https://tululu.org/'
+    url = urljoin(base_url, f'b{book_id}/')
     response = requests.get(url)
     check_for_redirect(response)
     response.raise_for_status()
 
     soup = BeautifulSoup(response.text, 'lxml')
 
-    book_image = soup.find('div', class_='bookimage')
-    if book_image:
-        book_image = book_image.find('img')['src']
-    else:
-        book_image = '/images/nopic.gif'
-
-    comments = []
-    for comment in soup.find_all('div', class_='texts'):
-        comment_text = comment.find('span', class_='black')
-        if comment_text:
-            comments.append(comment_text.text)
-
-    genres = []
-    span_d_book = soup.find('span', class_='d_book')
-    if span_d_book:
-        for genre in span_d_book.find_all('a'):
-            genres.append(genre.text)
-
-    title_parts = soup.find('h1').text.split(':')
-    book_title = title_parts[0].strip()
-    author = title_parts[2].strip()
-
-    book_data = {
-        'title': book_title,
-        'author': author,
-        'image_url': urljoin('https://tululu.org/', book_image),
-        'comments': comments,
-        'genres': genres,
+    book_info = {
+        'title': get_book_title(soup),
+        'author': get_author(soup),
+        'image_url': get_book_image(url, soup),
+        'comments': get_comments(soup),
+        'genres': get_genres(soup),
     }
     
-    return book_data
+    return book_info
 
 
-def download_txt(url, filename, folder='books/'):
-
-    response = requests.get(url)
+@retry(ConnectionError, tries=3, delay=20)
+def download_txt(book_id, filename, folder='books/'):
+    payload = {'id': book_id}
+    url = 'https://tululu.org/txt.php'
+    response = requests.get(url, params=payload)
     check_for_redirect(response)
     response.raise_for_status()
 
@@ -84,6 +105,7 @@ def download_txt(url, filename, folder='books/'):
     return filepath
 
 
+@retry(ConnectionError, tries=3, delay=20)
 def download_image(url, folder='images/'):
 
     filename = get_filename(url)
@@ -101,31 +123,20 @@ def download_image(url, folder='images/'):
     return filepath
 
 
-def save_book(url, book_title, directory='books'):
-    response = requests.get(url)
-    check_for_redirect(response)
-    response.raise_for_status()
-    os.makedirs(directory, exist_ok=True)
-    path_to_book = join(BASE_DIR, directory, f'{book_title}.txt')
-    
-    with open(path_to_book, 'wb') as f:
-        f.write(response.content)
-
-
-def get_books(ids):
-    for book_id in ids:
-        url = f'https://tululu.org/txt.php?id={book_id}'
-        try:
-            book_data = parse_book(book_id)
-            book_title = f'{book_id}. {book_data["title"]}'
-            download_txt(url, book_title)
-            download_image(book_data["image_url"])
-            print(book_data["title"])
-            print(book_data["author"])
-            print(book_data["genres"])
-            print()
-        except HTTPError:
-            print(f'Book with id {book_id}, does not exist')
+def get_book(book_id):
+    try:
+        book_info = parse_book(book_id)
+        book_title = f'{book_id}. {book_info["title"]}'
+        download_txt(book_id, book_title)
+        download_image(book_info["image_url"])
+        print(book_info["title"])
+        print(book_info["author"])
+        print(book_info["genres"])
+        print()
+    except HTTPError:
+        print(f'Book with id {book_id}, does not exist.')
+    except ConnectionError:
+        print(f'connection lost on book with id: {book_id}.')
 
 
 def main():
@@ -149,8 +160,8 @@ def main():
             default=10)   
     
     args = parser.parse_args()
-    ids = [i for i in range(args.start_id, args.end_id + 1)]
-    get_books(ids)
+    for book_id in range(args.start_id, args.end_id + 1):
+        get_book(book_id)
 
 
 if __name__ == '__main__':
