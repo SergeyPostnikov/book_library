@@ -76,7 +76,7 @@ def parse_book(book_id):
 
     soup = BeautifulSoup(response.text, 'lxml')
 
-    book_info = {
+    book_page = {
         'title': get_book_title(soup),
         'author': get_author(soup),
         'image_url': get_book_image(url, soup),
@@ -84,7 +84,7 @@ def parse_book(book_id):
         'genres': get_genres(soup),
     }
     
-    return book_info
+    return book_page
 
 
 @retry(ConnectionError, tries=3, delay=20)
@@ -125,13 +125,13 @@ def download_image(url, folder='images/'):
 
 def get_book(book_id):
     try:
-        book_info = parse_book(book_id)
-        book_title = f'{book_id}. {book_info["title"]}'
+        book_page = parse_book(book_id)
+        book_title = f'{book_id}. {book_page["title"]}'
         download_txt(book_id, book_title)
-        download_image(book_info["image_url"])
-        print(book_info["title"])
-        print(book_info["author"])
-        print(book_info["genres"])
+        download_image(book_page["image_url"])
+        print(book_page["title"])
+        print(book_page["author"])
+        print(book_page["genres"])
         print()
     except HTTPError:
         print(f'Book with id {book_id}, does not exist.')
