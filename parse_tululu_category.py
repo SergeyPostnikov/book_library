@@ -27,7 +27,8 @@ def get_all_tables(soup):
 
 
 def parse_book_card(table):
-    download_url = urljoin(BASE_URL, table.find('a')['href'])
+    href = table.find('a')['href']
+    download_url = urljoin(BASE_URL, href)
     book_card = {
         'download_url': download_url
     }
@@ -39,5 +40,6 @@ if __name__ == '__main__':
     digest_page = get_digest_page(55)
     soup = get_soup(digest_page)
     all_tables = get_all_tables(soup)
-    book_card = parse_book_card(all_tables[0])
-    pprint(book_card)
+    for table in all_tables[:25]:
+        book_card = parse_book_card(table)
+        pprint(book_card['download_url'])
