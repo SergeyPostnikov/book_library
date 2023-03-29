@@ -16,22 +16,28 @@ def get_digest_page(digest_num):
     return response
 
 
-def get_book_id(soup):
-    book_id = soup.find_all('a', attrs={'title': 'Бесплатная библиотека'})
-    return book_id
-
-
-def parse_book_card(digest_page):
+def get_soup(response):
     soup = BeautifulSoup(digest_page.text, 'lxml')
-    book_id = get_book_id(soup)
+    return soup
+
+
+def get_all_tables(soup):
+    all_tables = soup.find_all('table', class_='d_book')
+    return all_tables
+
+
+def parse_book_card(table):
+    download_url = urljoin(BASE_URL, table.find('a')['href'])
     book_card = {
-        'book_id': book_id
+        'download_url': download_url
     }
     return book_card
 
 
 if __name__ == '__main__':
+    from pprint import pprint
     digest_page = get_digest_page(55)
-    # print(digest_page.text)
-    book_card = parse_book_card(digest_page)
-    print(book_card)
+    soup = get_soup(digest_page)
+    all_tables = get_all_tables(soup)
+    book_card = parse_book_card(all_tables[0])
+    pprint(book_card)
