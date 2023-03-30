@@ -124,7 +124,7 @@ def download_image(url, folder='images/'):
     return filepath
 
 
-def get_book(book_id):
+def get_book(book_id, skip_txt=None, skip_imgs=None):
     row_page = get_page(book_id)
     book_page = parse_book(row_page)
     book_title = f'{book_id}. {book_page["title"]}'

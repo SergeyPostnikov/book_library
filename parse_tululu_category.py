@@ -1,10 +1,14 @@
 import requests
-from main import BASE_URL, check_for_redirect, get_book
+from main import check_for_redirect, get_book
+from main import BASE_URL, BASE_DIR
+
 from retry import retry
 from requests.exceptions import HTTPError, ConnectionError
 from urllib.parse import urljoin
 from bs4 import BeautifulSoup
 import json
+import argparse
+from os.path import join
 
 
 @retry(ConnectionError, tries=3, delay=10)
@@ -24,20 +28,21 @@ def get_soup(response):
 
 
 def get_all_tables(soup):
-    all_tables = soup.find_all('table', class_='d_book')
+    selector = 'table.d_book'
+    all_tables = soup.select(selector)
     return all_tables
 
 
 def parse_book_url(table):
-    href = table.find('a')['href']
+    href = table.select_one('a')['href']
     book_url = urljoin(BASE_URL, href)
     return book_url
 
 
-def get_links(amount, digest_number):
+def get_links(start_page, end_page,digest_number):
     all_tables = []
     urls = []
-    for num_page in range(1, amount + 1):
+    for num_page in range(start_page, end_page + 1):
         digest_page = get_digest_page(55, num_page)
         soup = get_soup(digest_page)
         all_tables += get_all_tables(soup)
@@ -54,15 +59,60 @@ def save_book_info(library_list):
         f.write(book_json)
 
 
+def get_argument_parser():
+    parser = argparse.ArgumentParser(
+        prog='library parser',
+        description='A script to download books and their covers from tululu.org',
+        epilog='usage: parse_tululu_category.py [--start_page START_ID] [--end_page END_ID]'
+        )
+
+    parser.add_argument(
+            '--start_page', 
+            type=int, 
+            help='Nubmer of page for the start parsing',
+            default=1
+        )
+    parser.add_argument(
+            '--end_page', 
+            type=int, 
+            help='Nubmer of page for the stop parsing',
+            default=2) 
+
+    parser.add_argument(
+            '--dest_folder', 
+            help='Folder for storing txt files of books',
+            default=join(BASE_DIR, 'books')) 
+
+    parser.add_argument(
+            '--skip_imgs', 
+            type=bool, 
+            help='Skip downloading title image of books',
+            default=False)
+
+    parser.add_argument(
+            '--skip_txt', 
+            type=bool, 
+            help='Skip downloading text of books',
+            default=False) 
+
+    parser.add_argument(
+            '--json_path', 
+            help='Folder for storing library.json ',
+            default=BASE_DIR)     
+    args = parser.parse_args()
+    return args
+
+
 def main():
-    links = get_links(amount=4, digest_number=55)
+    args = get_argument_parser()
+    links = get_links(args.start_page, args.end_page, digest_number=55)
     library_list = []
     for link in links:
         try:
             book_id = link.split('b')[1].replace('/', '')
             book_card = get_book(book_id)
             library_list.append(book_card)
-        except HTTPError:
+        except HTTPError:  
             print(f'Book with id {book_id}, does not exist.')
         except ConnectionError:
             print(f'connection lost on book with id: {book_id}.')
