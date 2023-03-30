@@ -127,11 +127,11 @@ def get_book(book_id):
     row_page = get_page(book_id)
     book_page = parse_book(row_page)
     book_title = f'{book_id}. {book_page["title"]}'
-    download_txt(book_id, book_title)
-    download_image(book_page["image_url"])
-    print(book_page["title"])
-    print(book_page["author"])
-    print(book_page["genres"])
+    book_path = download_txt(book_id, book_title)
+    image_src = download_image(book_page["image_url"])
+    book_page['book_path'] = book_path
+    book_page['image_src'] = image_src
+    return book_page
 
 
 def main():

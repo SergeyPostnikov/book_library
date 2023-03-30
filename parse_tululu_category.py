@@ -1,9 +1,10 @@
 import requests
-from main import BASE_URL, check_for_redirect
+from main import BASE_URL, check_for_redirect, get_book
 from retry import retry
-from requests.exceptions import ConnectionError
+from requests.exceptions import HTTPError, ConnectionError
 from urllib.parse import urljoin
 from bs4 import BeautifulSoup
+import json
 
 
 @retry(ConnectionError, tries=3, delay=10)
@@ -27,26 +28,45 @@ def get_all_tables(soup):
     return all_tables
 
 
-def parse_book_card(table):
+def parse_book_url(table):
     href = table.find('a')['href']
-    download_url = urljoin(BASE_URL, href)
-    book_card = {
-        'download_url': download_url
-    }
-    return book_card
+    book_url = urljoin(BASE_URL, href)
+    return book_url
 
 
-def main():
+def get_links(amount, digest_number):
     all_tables = []
-    for num_page in range(1, 11):
+    urls = []
+    for num_page in range(1, amount + 1):
         digest_page = get_digest_page(55, num_page)
         soup = get_soup(digest_page)
         all_tables += get_all_tables(soup)
     
     for table in all_tables:
-        book_card = parse_book_card(table)
-        print(book_card['download_url'])
-    print(f'amount of links {len(all_tables)}')
+        book_url = parse_book_url(table)
+        urls.append(book_url)
+    return urls
+
+
+def save_book_info(library_list):
+    book_json = json.dumps(library_list, ensure_ascii=False)
+    with open('library.json', 'w', encoding='utf8') as f:
+        f.write(book_json)
+
+
+def main():
+    links = get_links(amount=4, digest_number=55)
+    library_list = []
+    for link in links:
+        try:
+            book_id = link.split('b')[1].replace('/', '')
+            book_card = get_book(book_id)
+            library_list.append(book_card)
+        except HTTPError:
+            print(f'Book with id {book_id}, does not exist.')
+        except ConnectionError:
+            print(f'connection lost on book with id: {book_id}.')
+    save_book_info(library_list)
 
 
 if __name__ == '__main__':
