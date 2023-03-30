@@ -31,16 +31,17 @@ def check_for_redirect(response):
 
 
 def get_book_title(soup):
-    title_parts = soup.find('h1').text.split(':')
+    title_parts = soup.select_one('h1').text.split(':')
     book_name = title_parts[0].strip()
     book_author = title_parts[2].strip()
     return book_name, book_author
 
 
 def get_book_image(soup):
-    book_image = soup.find('div', class_='bookimage')
+    selector = 'div.bookimage img'
+    book_image = soup.select_one(selector)
     if book_image:
-        book_image = urljoin(BASE_URL, book_image.find('img')['src'])
+        book_image = urljoin(BASE_URL, book_image['src'])
     else:
         book_image = urljoin(BASE_URL, '/images/nopic.gif')
     return book_image
@@ -48,8 +49,8 @@ def get_book_image(soup):
 
 def get_comments(soup):
     comments = []
-    for comment in soup.find_all('div', class_='texts'):
-        comment_text = comment.find('span', class_='black')
+    for comment in soup.select('div.texts'):
+        comment_text = comment.select_one('span.black')
         if comment_text:
             comments.append(comment_text.text)
     return comments
@@ -57,9 +58,9 @@ def get_comments(soup):
 
 def get_genres(soup):
     genres = []
-    span_d_book = soup.find('span', class_='d_book')
+    span_d_book = soup.select_one('span.d_book')
     if span_d_book:
-        for genre in span_d_book.find_all('a'):
+        for genre in span_d_book.select('a'):
             genres.append(genre.text)
     return genres
 
