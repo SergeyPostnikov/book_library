@@ -7,8 +7,9 @@ from bs4 import BeautifulSoup
 
 
 @retry(ConnectionError, tries=3, delay=10)
-def get_digest_page(digest_num):
-    url = urljoin(BASE_URL, f'/l{digest_num}/')
+def get_digest_page(digest_num, page_number=1):
+    digest_url = urljoin(BASE_URL, f'/l{digest_num}/')
+    url = urljoin(digest_url, f'{page_number}')
     response = requests.get(url)
     response.raise_for_status()
     check_for_redirect(response)
@@ -17,7 +18,7 @@ def get_digest_page(digest_num):
 
 
 def get_soup(response):
-    soup = BeautifulSoup(digest_page.text, 'lxml')
+    soup = BeautifulSoup(response.text, 'lxml')
     return soup
 
 
@@ -35,11 +36,18 @@ def parse_book_card(table):
     return book_card
 
 
-if __name__ == '__main__':
-    from pprint import pprint
-    digest_page = get_digest_page(55)
-    soup = get_soup(digest_page)
-    all_tables = get_all_tables(soup)
-    for table in all_tables[:25]:
+def main():
+    all_tables = []
+    for num_page in range(1, 11):
+        digest_page = get_digest_page(55, num_page)
+        soup = get_soup(digest_page)
+        all_tables += get_all_tables(soup)
+    
+    for table in all_tables:
         book_card = parse_book_card(table)
-        pprint(book_card['download_url'])
+        print(book_card['download_url'])
+    print(f'amount of links {len(all_tables)}')
+
+
+if __name__ == '__main__':
+    main()
