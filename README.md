@@ -43,8 +43,9 @@ python parse_tululu_by_id.py --start_id 1 --end_id 10
 *   Replace the start\_id and end\_id arguments with the desired range of ids to download
 
 #### parising by diapason pages
+for download around 100 book you shuld type: 
 ```
-python parse_tululu_category.py 
+python parse_tululu_category.py --start_page 1 --end_page 4
 ```
 # additional arguments
 
