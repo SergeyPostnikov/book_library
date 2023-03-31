@@ -141,7 +141,7 @@ def main():
     parser = argparse.ArgumentParser(
         prog='library parser',
         description='A script to download books and their covers from tululu.org',
-        epilog='usage: main.py [--start_id START_ID] [--end_id END_ID]'
+        epilog='usage: parse_tululu_by_id [--start_id START_ID] [--end_id END_ID]'
         )
 
     parser.add_argument(

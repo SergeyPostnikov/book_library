@@ -8,7 +8,7 @@ Description
 
 This Python script downloads books and their covers from the [Tululu.org](http://tululu.org/) website, a collection of books in Russian without registration.
 
-The script allows to download books within a specific range of ids or for a single book by providing its id.
+The script allows to download books within a specific range of ids or for a single book by providing its id or category.
 
 The books are downloaded in a plain text format and saved in the "books" directory. The covers are downloaded in JPG format and saved in the "images" directory.
 
@@ -31,19 +31,30 @@ pip install -r requirements.txt
 ```
 
 ### Executing program
+#### parising by diapason ids
 
 *   Navigate to the project directory in a terminal
 *   Run the following command:
 
 
 ```
-python main.py --start_id 1 --end_id 10
+python parse_tululu_by_id.py --start_id 1 --end_id 10
 ```
-
 *   Replace the start\_id and end\_id arguments with the desired range of ids to download
-*   Alternatively, provide a single id to download a single book:
 
+#### parising by diapason pages
 ```
-python main.py --start_id 1 --end_id 1
+python parse_tululu_category.py 
 ```
+# additional arguments
 
+- `--start_page` - Nubmer of page for the start parsing.
+
+- `--end_page` - Nubmer of page for the stop parsing
+
+- `--dest_folder` - путь к каталогу с результатами парсинга: картинкам, книгам, JSON.
+  * by default `books` in project folder.
+- `--skip_imgs` -  skip downloading image of book
+- `--skip_txt` - skip downloading text of book.
+- `--json_path` - location of library.json
+  * by default located in project folder
