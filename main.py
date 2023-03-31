@@ -124,14 +124,16 @@ def download_image(url, folder='images/'):
     return filepath
 
 
-def get_book(book_id, skip_txt=None, skip_imgs=None):
+def get_book(book_id, folder='books', skip_txt=False, skip_imgs=False):
     row_page = get_page(book_id)
     book_page = parse_book(row_page)
     book_title = f'{book_id}. {book_page["title"]}'
-    book_path = download_txt(book_id, book_title)
-    image_src = download_image(book_page["image_url"])
-    book_page['book_path'] = book_path
-    book_page['image_src'] = image_src
+    if not skip_txt:
+        book_path = download_txt(book_id, book_title, folder)
+        book_page['book_path'] = book_path
+    if not skip_imgs:
+        image_src = download_image(book_page["image_url"])
+        book_page['image_src'] = image_src
     return book_page
 
 
@@ -157,7 +159,7 @@ def main():
     args = parser.parse_args()
     for book_id in range(args.start_id, args.end_id + 1):
         try:
-            get_book(book_id)
+            get_book(book_id, )
         except HTTPError:
             print(f'Book with id {book_id}, does not exist.')
         except ConnectionError:

@@ -53,9 +53,10 @@ def get_links(start_page, end_page,digest_number):
     return urls
 
 
-def save_book_info(library_list):
+def save_book_info(library_list, folder):
     book_json = json.dumps(library_list, ensure_ascii=False)
-    with open('library.json', 'w', encoding='utf8') as f:
+    path_to_json = join(BASE_DIR, folder, 'library.json')
+    with open(path_to_json, 'w', encoding='utf8') as f:
         f.write(book_json)
 
 
@@ -76,7 +77,7 @@ def get_argument_parser():
             '--end_page', 
             type=int, 
             help='Nubmer of page for the stop parsing',
-            default=2) 
+            default=1) 
 
     parser.add_argument(
             '--dest_folder', 
@@ -110,13 +111,13 @@ def main():
     for link in links:
         try:
             book_id = link.split('b')[1].replace('/', '')
-            book_card = get_book(book_id)
+            book_card = get_book(book_id, args.dest_folder, args.skip_txt, args.skip_imgs,)
             library_list.append(book_card)
         except HTTPError:  
             print(f'Book with id {book_id}, does not exist.')
         except ConnectionError:
             print(f'connection lost on book with id: {book_id}.')
-    save_book_info(library_list)
+    save_book_info(library_list, '')
 
 
 if __name__ == '__main__':
