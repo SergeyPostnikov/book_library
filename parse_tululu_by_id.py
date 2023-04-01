@@ -22,6 +22,10 @@ from retry import retry
 BASE_DIR = Path(__file__).resolve().parent
 BASE_URL = 'https://tululu.org/'
 
+TRIES = 1
+DELAY = 1
+MAX_DELAY = 1
+
 
 def get_filename(url):
     path = urlparse(url).path
@@ -70,7 +74,7 @@ def get_genres(soup):
     return genres
 
 
-@retry(ConnectionError, tries=3, delay=10)
+@retry(ConnectionError, tries=TRIES, delay=DELAY, max_delay=DELAY)
 def get_page(url):
     response = requests.get(url)
     check_for_redirect(response)
@@ -92,7 +96,7 @@ def parse_book(response):
     return book_page
 
 
-@retry(ConnectionError, tries=3, delay=10)
+@retry(ConnectionError, tries=TRIES, delay=DELAY, max_delay=DELAY)
 def download_txt(book_id, filename, folder='books/'):
     payload = {'id': book_id}
     url = 'https://tululu.org/txt.php'
@@ -110,7 +114,7 @@ def download_txt(book_id, filename, folder='books/'):
     return filepath
 
 
-@retry(ConnectionError, tries=3, delay=10)
+@retry(ConnectionError, tries=TRIES, delay=DELAY, max_delay=DELAY)
 def download_image(url, folder='images/'):
 
     filename = get_filename(url)
@@ -164,7 +168,7 @@ def main():
     args = parser.parse_args()
     for book_id in range(args.start_id, args.end_id + 1):
         try:
-            get_book(book_id, )
+            get_book(book_id)
         except HTTPError:
             print(f'Book with id {book_id}, does not exist.')
         except ConnectionError:
