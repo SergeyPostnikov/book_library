@@ -1,10 +1,15 @@
 import requests
-from requests.exceptions import HTTPError, ConnectionError
+
+from requests.exceptions import ConnectionError
+from requests.exceptions import HTTPError
 
 import os
+
 from os.path import join
 from pathlib import Path
-from urllib.parse import urljoin, urlparse, unquote
+from urllib.parse import unquote
+from urllib.parse import urljoin
+from urllib.parse import urlparse
 
 from bs4 import BeautifulSoup
 from pathvalidate import sanitize_filename

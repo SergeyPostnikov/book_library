@@ -1,14 +1,20 @@
-import requests
-from main import check_for_redirect, get_book
-from main import BASE_URL, BASE_DIR
-
-from retry import retry
-from requests.exceptions import HTTPError, ConnectionError
-from urllib.parse import urljoin
-from bs4 import BeautifulSoup
-import json
 import argparse
+import json
+
 from os.path import join
+from urllib.parse import urljoin
+
+import requests
+
+from bs4 import BeautifulSoup
+from requests.exceptions import ConnectionError
+from requests.exceptions import HTTPError
+from retry import retry
+
+from parse_tululu_by_id import BASE_DIR
+from parse_tululu_by_id import BASE_URL
+from parse_tululu_by_id import check_for_redirect
+from parse_tululu_by_id import get_book
 
 
 @retry(ConnectionError, tries=3, delay=10)
