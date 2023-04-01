@@ -4,28 +4,14 @@ import json
 from os.path import join
 from urllib.parse import urljoin
 
-import requests
-
 from bs4 import BeautifulSoup
 from requests.exceptions import ConnectionError
 from requests.exceptions import HTTPError
-from retry import retry
 
 from parse_tululu_by_id import BASE_DIR
 from parse_tululu_by_id import BASE_URL
-from parse_tululu_by_id import check_for_redirect
 from parse_tululu_by_id import get_book
-
-
-@retry(ConnectionError, tries=3, delay=10)
-def get_digest_page(digest_num, page_number=1):
-    digest_url = urljoin(BASE_URL, f'/l{digest_num}/')
-    url = urljoin(digest_url, f'{page_number}')
-    response = requests.get(url)
-    response.raise_for_status()
-    check_for_redirect(response)
-
-    return response
+from parse_tululu_by_id import get_page
 
 
 def get_all_tables(response):
@@ -44,8 +30,10 @@ def parse_book_url(table):
 def get_links(start_page, end_page, digest_number):
     all_tables = []
     urls = []
-    for num_page in range(start_page, end_page + 1):
-        digest_page = get_digest_page(digest_number, num_page)
+    for page_number in range(start_page, end_page + 1):
+        digest_url = urljoin(BASE_URL, f'/l{digest_number}/')
+        url = urljoin(digest_url, f'{page_number}')
+        digest_page = get_page(url)
         all_tables += get_all_tables(digest_page)
     
     for table in all_tables:

@@ -71,8 +71,7 @@ def get_genres(soup):
 
 
 @retry(ConnectionError, tries=3, delay=10)
-def get_page(book_id):
-    url = urljoin(BASE_URL, f'b{book_id}/')
+def get_page(url):
     response = requests.get(url)
     check_for_redirect(response)
     response.raise_for_status()
@@ -130,7 +129,8 @@ def download_image(url, folder='images/'):
 
 
 def get_book(book_id, folder='books', skip_txt=False, skip_imgs=False):
-    row_page = get_page(book_id)
+    url = urljoin(BASE_URL, f'b{book_id}/')
+    row_page = get_page(url)
     book_page = parse_book(row_page)
     book_title = f'{book_id}. {book_page["title"]}'
     if not skip_txt:
