@@ -42,14 +42,14 @@ def get_links(start_page, end_page, digest_number):
     return urls
 
 
-def save_book_info(library_list, folder):
+def get_catalog(library_list, folder):
     book_json = json.dumps(library_list, ensure_ascii=False)
     path_to_json = join(BASE_DIR, folder, 'library.json')
     with open(path_to_json, 'w', encoding='utf8') as f:
         f.write(book_json)
 
 
-def get_argument_parser():
+def get_arguments():
     parser = argparse.ArgumentParser(
         prog='library parser',
         description='A script to download books and their covers from tululu.org',
@@ -76,13 +76,13 @@ def get_argument_parser():
     parser.add_argument(
             '--skip_imgs', 
             help='Skip downloading title image of books',
-            action='store_false'
+            action='store_true'
             )
 
     parser.add_argument(
             '--skip_txt', 
             help='Skip downloading text of books',
-            action='store_false'
+            action='store_true'
             ) 
 
     parser.add_argument(
@@ -94,19 +94,19 @@ def get_argument_parser():
 
 
 def main():
-    args = get_argument_parser()
+    args = get_arguments()
     links = get_links(args.start_page, args.end_page, digest_number=55)
-    library_list = []
+    library_catalog = []
     for link in links:
         try:
             book_id = link.split('b')[1].replace('/', '')
             book_card = get_book(book_id, args.dest_folder, args.skip_txt, args.skip_imgs,)
-            library_list.append(book_card)
+            library_catalog.append(book_card)
         except HTTPError:  
             print(f'Book with id {book_id}, does not exist.')
         except ConnectionError:
             print(f'connection lost on book with id: {book_id}.')
-    save_book_info(library_list, '')
+    get_catalog(library_catalog, args.json_path)
 
 
 if __name__ == '__main__':
