@@ -1,5 +1,6 @@
 import argparse
 import json
+import time
 
 from os.path import join
 from urllib.parse import urljoin
@@ -14,11 +15,11 @@ from parse_tululu_by_id import get_book
 from parse_tululu_by_id import get_page
 
 
-def get_all_tables(response):
+def get_book_card(response):
     soup = BeautifulSoup(response.text, 'lxml')
     selector = 'table.d_book'
-    all_tables = soup.select(selector)
-    return all_tables
+    book_cards = soup.select(selector)
+    return book_cards
 
 
 def parse_book_url(table):
@@ -34,7 +35,7 @@ def get_links(start_page, end_page, digest_number):
         digest_url = urljoin(BASE_URL, f'/l{digest_number}/')
         url = urljoin(digest_url, f'{page_number}')
         digest_page = get_page(url)
-        all_tables += get_all_tables(digest_page)
+        all_tables += get_book_card(digest_page)
     
     for table in all_tables:
         book_url = parse_book_url(table)
@@ -42,11 +43,10 @@ def get_links(start_page, end_page, digest_number):
     return urls
 
 
-def get_catalog(library_list, folder):
-    book_json = json.dumps(library_list, ensure_ascii=False)
+def get_catalog(library_catalog, folder):
     path_to_json = join(BASE_DIR, folder, 'library.json')
-    with open(path_to_json, 'w', encoding='utf8') as f:
-        f.write(book_json)
+    with open(path_to_json, 'w', encoding='utf8') as file:
+        json.dump(library_catalog, file, ensure_ascii=False)
 
 
 def get_arguments():
@@ -106,6 +106,8 @@ def main():
             print(f'Book with id {book_id}, does not exist.')
         except ConnectionError:
             print(f'connection lost on book with id: {book_id}.')
+            time.sleep(1)
+            continue
     get_catalog(library_catalog, args.json_path)
 
 

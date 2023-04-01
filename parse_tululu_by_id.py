@@ -4,6 +4,7 @@ from requests.exceptions import ConnectionError
 from requests.exceptions import HTTPError
 
 import os
+import time
 
 from os.path import join
 from pathlib import Path
@@ -15,8 +16,6 @@ from bs4 import BeautifulSoup
 from pathvalidate import sanitize_filename
 
 import argparse
-
-from retry import retry
 
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -74,7 +73,6 @@ def get_genres(soup):
     return genres
 
 
-@retry(ConnectionError, tries=TRIES, delay=DELAY, max_delay=DELAY)
 def get_page(url):
     response = requests.get(url)
     check_for_redirect(response)
@@ -96,7 +94,6 @@ def parse_book(response):
     return book_page
 
 
-@retry(ConnectionError, tries=TRIES, delay=DELAY, max_delay=DELAY)
 def download_txt(book_id, filename, folder='books/'):
     payload = {'id': book_id}
     url = 'https://tululu.org/txt.php'
@@ -114,7 +111,6 @@ def download_txt(book_id, filename, folder='books/'):
     return filepath
 
 
-@retry(ConnectionError, tries=TRIES, delay=DELAY, max_delay=DELAY)
 def download_image(url, folder='images/'):
 
     filename = get_filename(url)
@@ -173,6 +169,8 @@ def main():
             print(f'Book with id {book_id}, does not exist.')
         except ConnectionError:
             print(f'connection lost on book with id: {book_id}.')
+            time.sleep(1)
+            continue
 
 
 if __name__ == '__main__':
