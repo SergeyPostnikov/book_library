@@ -28,12 +28,8 @@ def get_digest_page(digest_num, page_number=1):
     return response
 
 
-def get_soup(response):
+def get_all_tables(response):
     soup = BeautifulSoup(response.text, 'lxml')
-    return soup
-
-
-def get_all_tables(soup):
     selector = 'table.d_book'
     all_tables = soup.select(selector)
     return all_tables
@@ -45,13 +41,12 @@ def parse_book_url(table):
     return book_url
 
 
-def get_links(start_page, end_page,digest_number):
+def get_links(start_page, end_page, digest_number):
     all_tables = []
     urls = []
     for num_page in range(start_page, end_page + 1):
-        digest_page = get_digest_page(55, num_page)
-        soup = get_soup(digest_page)
-        all_tables += get_all_tables(soup)
+        digest_page = get_digest_page(digest_number, num_page)
+        all_tables += get_all_tables(digest_page)
     
     for table in all_tables:
         book_url = parse_book_url(table)
