@@ -92,15 +92,15 @@ def get_argument_parser():
 
     parser.add_argument(
             '--skip_imgs', 
-            type=bool, 
             help='Skip downloading title image of books',
-            default=False)
+            action='store_false'
+            )
 
     parser.add_argument(
             '--skip_txt', 
-            type=bool, 
             help='Skip downloading text of books',
-            default=False) 
+            action='store_false'
+            ) 
 
     parser.add_argument(
             '--json_path', 
