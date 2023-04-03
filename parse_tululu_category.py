@@ -93,21 +93,24 @@ def get_arguments():
     return args
 
 
-def main():
+def main(tries=2, delay=5):
     args = get_arguments()
     links = get_links(args.start_page, args.end_page, digest_number=55)
     library_catalog = []
     for link in links:
-        try:
-            book_id = link.split('b')[1].replace('/', '')
-            book_card = get_book(book_id, args.dest_folder, args.skip_txt, args.skip_imgs,)
-            library_catalog.append(book_card)
-        except HTTPError:  
-            print(f'Book with id {book_id}, does not exist.')
-        except ConnectionError:
-            print(f'connection lost on book with id: {book_id}.')
-            time.sleep(1)
-            continue
+        book_id = link.split('b')[1].replace('/', '')
+        for _ in range(tries):
+            try:
+                book_card = get_book(book_id, args.dest_folder, args.skip_txt, args.skip_imgs,)
+                library_catalog.append(book_card)
+                break  
+            except HTTPError:  
+                print(f'Book with id {book_id}, does not exist.')
+                break  
+            except ConnectionError:
+                print(f'Connection lost on book with id: {book_id}.')
+                time.sleep(delay)
+                continue
     save_catalog(library_catalog, args.json_path)
 
 

@@ -21,10 +21,6 @@ import argparse
 BASE_DIR = Path(__file__).resolve().parent
 BASE_URL = 'https://tululu.org/'
 
-TRIES = 1
-DELAY = 1
-MAX_DELAY = 1
-
 
 def get_filename(url):
     path = urlparse(url).path
@@ -142,7 +138,7 @@ def get_book(book_id, folder='books', skip_txt=False, skip_imgs=False):
     return book_page
 
 
-def main():
+def main(tries=2, delay=5):
     parser = argparse.ArgumentParser(
         prog='library parser',
         description='A script to download books and their covers from tululu.org',
@@ -163,14 +159,15 @@ def main():
     
     args = parser.parse_args()
     for book_id in range(args.start_id, args.end_id + 1):
-        try:
-            get_book(book_id)
-        except HTTPError:
-            print(f'Book with id {book_id}, does not exist.')
-        except ConnectionError:
-            print(f'connection lost on book with id: {book_id}.')
-            time.sleep(1)
-            continue
+        for _ in range(tries):        
+            try:
+                get_book(book_id)
+            except HTTPError:
+                print(f'Book with id {book_id}, does not exist.')
+                break
+            except ConnectionError:
+                print(f'connection lost on book with id: {book_id}.')
+                time.sleep(delay)
 
 
 if __name__ == '__main__':
