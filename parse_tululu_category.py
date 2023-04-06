@@ -34,8 +34,15 @@ def get_links(start_page, end_page, digest_number):
     for page_number in range(start_page, end_page + 1):
         digest_url = urljoin(BASE_URL, f'/l{digest_number}/')
         url = urljoin(digest_url, f'{page_number}')
-        digest_page = get_page(url)
-        book_cards += get_book_cards(digest_page)
+        try:
+            digest_page = get_page(url)
+            book_cards += get_book_cards(digest_page)
+        except HTTPError:
+            print(f'page number {page_number} does not exists')
+        except ConnectionError:
+            print(f'Connection lost on {page_number}.')
+            time.sleep(10)
+            continue
     
     for table in book_cards:
         book_url = parse_book_url(table)
