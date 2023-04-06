@@ -100,10 +100,13 @@ def get_arguments():
     return args
 
 
-def main(tries=2, delay=5):
+def main():
     args = get_arguments()
     links = get_links(args.start_page, args.end_page, digest_number=55)
     library_catalog = []
+    tries = 2 
+    delay = 5
+    
     for link in links:
         book_id = link.split('b')[1].replace('/', '')
         for _ in range(tries):
