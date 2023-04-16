@@ -31,11 +31,26 @@ def parse_book_url(table):
 def get_links(start_page, end_page, digest_number):
     book_cards = []
     urls = []
+    tries = 3
+    delay = 2
     for page_number in range(start_page, end_page + 1):
         digest_url = urljoin(BASE_URL, f'/l{digest_number}/')
         url = urljoin(digest_url, f'{page_number}')
-        digest_page = get_page(url)
-        book_cards += get_book_cards(digest_page)
+        # url = urljoin(digest_url, '1000')
+        for _ in range(tries):
+            try:
+                digest_page = get_page(url)
+                book_cards += get_book_cards(digest_page)
+            except HTTPError:
+                print(f'page number {page_number} does not exist')
+                break
+            except ConnectionError:
+                print(f'Connection lost on page {page_number}.')
+                time.sleep(delay)
+                continue
+            else:
+                print(page_number)
+                break
     
     for table in book_cards:
         book_url = parse_book_url(table)
@@ -66,7 +81,7 @@ def get_arguments():
             '--end_page', 
             type=int, 
             help='Nubmer of page for the stop parsing',
-            default=1) 
+            default=4) 
 
     parser.add_argument(
             '--dest_folder', 
@@ -93,10 +108,13 @@ def get_arguments():
     return args
 
 
-def main(tries=2, delay=5):
+def main():
     args = get_arguments()
     links = get_links(args.start_page, args.end_page, digest_number=55)
     library_catalog = []
+    tries = 2 
+    delay = 5
+
     for link in links:
         book_id = link.split('b')[1].replace('/', '')
         for _ in range(tries):
@@ -110,7 +128,7 @@ def main(tries=2, delay=5):
             except ConnectionError:
                 print(f'Connection lost on book with id: {book_id}.')
                 time.sleep(delay)
-                continue
+
     save_catalog(library_catalog, args.json_path)
 
 
