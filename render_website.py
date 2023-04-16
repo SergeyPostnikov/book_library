@@ -1,10 +1,7 @@
-from flask import Flask
-from flask import render_template
 import json
 import codecs
-
-
-app = Flask(__name__)
+from livereload import Server
+from jinja2 import FileSystemLoader, Environment
 
 
 def get_books():
@@ -13,11 +10,20 @@ def get_books():
     return books
 
 
-@app.route("/")
-def index():
+def on_reload():
+    loader = FileSystemLoader('templates')
+    env = Environment(loader=loader)
+
     books = get_books()
-    return render_template('index.html', books=books)
+
+    template = env.get_template('template.html')
+    page = template.render(books=books)
+    with open('index.html', 'w', encoding="utf-8") as f:
+        f.write(page)
 
 
 if __name__ == '__main__':
-    app.run(debug=True, host="localhost", port=9000)
+    on_reload()
+    server = Server()
+    server.watch('templates/template.html', on_reload)
+    server.serve(root='.')
