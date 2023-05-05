@@ -1,6 +1,7 @@
 /env/
 /books/
 /images/
+/pages/
 /__pycache__/
 index.html
 library.json

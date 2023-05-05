@@ -1,26 +1,58 @@
 import json
+from os.path import join
+import os
 import codecs
 from livereload import Server
 from jinja2 import FileSystemLoader, Environment
 from more_itertools import chunked
+from parse_tululu_by_id import BASE_DIR
 
 
-def get_books(columns):
+def get_books(per_page: int, per_row: int, ) -> list:
     with codecs.open('library.json', encoding="utf_8_sig") as f:
         books = json.load(f)
-    return books
+    columns = [i for i in chunked(books, per_row)]
+    chunk = chunked(columns, per_page // per_row)
+    book_pages = [page for page in chunk]
+
+    return book_pages
 
 
-def on_reload():
+def render_template(page_number, books, template='template.html'):
+    rout = join(BASE_DIR, 'books', f'index{page_number}.html')
+    serialized_page = {
+        'books': books,
+        'number': page_number,
+    }
+    rendered_page = template.render(page=serialized_page)
+    with open(rout, 'w', encoding="utf-8") as f:
+        f.write(rendered_page)
+
+
+def on_reload(folder='pages'):
+    os.makedirs(folder, exist_ok=True)
     loader = FileSystemLoader('templates')
     env = Environment(loader=loader)
-
-    books = list(chunked(get_books(2)[:-1:], 2))
-
     template = env.get_template('template.html')
-    page = template.render(books=books)
-    with open('index.html', 'w', encoding="utf-8") as f:
-        f.write(page)
+    books_pages = get_books(per_page=8, per_row=2)
+    page_number = 1
+
+    page_nums = [i for i in range(1, len(books_pages) + 1)]
+
+    for page in books_pages:
+        rout = join(BASE_DIR, folder, f'index{page_number}.html')
+
+        serialized_page = {
+            'books': page,
+            'number': page_number,
+            'ids': page_nums
+        }
+
+        rendered_page = template.render(page=serialized_page)
+
+        with open(rout, 'w', encoding="utf-8") as f:
+            f.write(rendered_page)
+        page_number += 1
 
 
 if __name__ == '__main__':
