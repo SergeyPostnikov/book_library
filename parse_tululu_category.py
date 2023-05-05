@@ -49,7 +49,6 @@ def get_links(start_page, end_page, digest_number):
                 time.sleep(delay)
                 continue
             else:
-                print(page_number)
                 break
     
     for table in book_cards:

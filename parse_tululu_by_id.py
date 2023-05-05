@@ -117,7 +117,7 @@ def download_image(url, folder='images/'):
     validated_filename = sanitize_filename(filename)
     
     os.makedirs(folder, exist_ok=True)
-    filepath = join(folder, f'{validated_filename}.jpg')
+    filepath = join(folder, validated_filename)
     
     with open(filepath, 'wb') as f:
         f.write(response.content)
