@@ -8,7 +8,7 @@
 
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="../static/css/bootstrap.min.css">
-    <title>Hello, world!</title>
+    <title>Library</title>
   </head>
   <body>
     <div class="container">
@@ -52,7 +52,7 @@
                       {% for genre in book.genres %}
                         <p class="badge badge-secondary">{{genre}}</p>
                       {% endfor %}
-                      <p class="card-text"><a href="{{ book.book_path|urlencode}}" target="_blank" >Читать</a></p>
+                      <p class="card-text"><a href="../{{ book.book_path|urlencode}}" target="_blank" >Читать</a></p>
                     </div>
                   </div>
                 </div>

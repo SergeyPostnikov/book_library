@@ -36,7 +36,6 @@ def get_links(start_page, end_page, digest_number):
     for page_number in range(start_page, end_page + 1):
         digest_url = urljoin(BASE_URL, f'/l{digest_number}/')
         url = urljoin(digest_url, f'{page_number}')
-        # url = urljoin(digest_url, '1000')
         for _ in range(tries):
             try:
                 digest_page = get_page(url)
@@ -85,7 +84,8 @@ def get_arguments():
     parser.add_argument(
             '--dest_folder', 
             help='Folder for storing txt files of books',
-            default=join(BASE_DIR, 'books')) 
+            default='books/'
+            )
 
     parser.add_argument(
             '--skip_imgs', 

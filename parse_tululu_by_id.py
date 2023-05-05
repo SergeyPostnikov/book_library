@@ -124,7 +124,7 @@ def download_image(url, folder='images/'):
     return filepath
 
 
-def get_book(book_id, folder='books', skip_txt=False, skip_imgs=False):
+def get_book(book_id, folder='books/', skip_txt=False, skip_imgs=False):
     url = urljoin(BASE_URL, f'b{book_id}/')
     row_page = get_page(url)
     book_page = parse_book(row_page)
