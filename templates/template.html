@@ -12,20 +12,20 @@
   </head>
   <body>
     <div class="container">
-      {% for row in books %}
+      {% for row in page.books %}
         <div class="row">
           {% for book in row %}
             <div class="col">
               <div class="card mb-3" style="max-width: 540px;">
                 <div class="row no-gutters">
-                  <div class="col-md-4">
+                  <div class="col-md-4"> 
                     <img src="{{book.image_url}}" class="card-img" alt="обложка книги {{book.title}}">
                   </div>
                   <div class="col-md-8">
                     <div class="card-body">
                       <h5 class="card-title">{{book.title}}</h5>
                       <p class="card-text">{{book.author}}</p>
-                      <p class="card-text"><a href="{{ book.book_path|urlencode }}" target="_blank" >Читать</a></p>
+                      <p class="card-text"><a href="{{ book.book_path|urlencode}}" target="_blank" >Читать</a></p>
                     </div>
                   </div>
                 </div>
@@ -34,7 +34,32 @@
           {% endfor %}
         </div>
       {% endfor %}
-    </div>    
+    </div>
+    <nav aria-label="Page navigation example">
+      <ul class="pagination d-flex justify-content-center">
+        {% if page.number > 1%}
+          <li class="page-item"><a class="page-link" tabindex="-1" href="./index{{page.number - 1}}.html">Previous</a></li>
+        {% else %}
+          <li class="page-item disabled"><a class="page-link" href="#" tabindex="-1" >Previous</a></li>
+        {% endif %}
+
+        {% for num in page.ids %}
+
+          {% if num == page.number %}
+            <li class="page-item active"><a class="page-link" href="#" >{{num}}</a></li>
+          {% else %}
+            <li class="page-item"><a class="page-link" href="./index{{num}}.html">{{num}}</a></li>
+          {% endif %}
+
+        {% endfor %}
+
+        {% if page.number < page.ids[-1] %}
+          <li class="page-item"><a class="page-link" tabindex="-1" href="./index{{page.number + 1}}.html">Next</a></li>
+        {% else %}
+          <li class="page-item"><a class="page-link" href="#" tabindex="-1" disabled>Next</a></li>
+        {% endif %}
+      </ul>
+    </nav>  
 
     <!-- Optional JavaScript; choose one of the two! -->
 
