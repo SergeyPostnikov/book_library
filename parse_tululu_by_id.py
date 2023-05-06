@@ -108,7 +108,6 @@ def download_txt(book_id, filename, folder='books/'):
 
 
 def download_image(url, folder='images/'):
-
     filename = get_filename(url)
     response = requests.get(url)
     check_for_redirect(response)

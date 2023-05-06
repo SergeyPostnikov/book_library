@@ -13,6 +13,7 @@ from parse_tululu_by_id import BASE_DIR
 from parse_tululu_by_id import BASE_URL
 from parse_tululu_by_id import get_book
 from parse_tululu_by_id import get_page
+from render_website import on_reload
 
 
 def get_book_cards(response):
@@ -102,7 +103,12 @@ def get_arguments():
     parser.add_argument(
             '--json_path', 
             help='Folder for storing library.json ',
-            default=BASE_DIR)     
+            default=BASE_DIR)
+    parser.add_argument(
+            '--auto_render',
+            help='Choice render or not html pages',
+            action='store_true'
+    )             
     args = parser.parse_args()
     return args
 
@@ -129,6 +135,9 @@ def main():
                 time.sleep(delay)
 
     save_catalog(library_catalog, args.json_path)
+    
+    if args.auto_render:
+        on_reload()
 
 
 if __name__ == '__main__':
