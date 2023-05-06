@@ -1,3 +1,12 @@
+#### parising by diapason ids
+
+*   Navigate to the project directory in a terminal
+*   Run the following command:
+
+```
+python parse_tululu_by_id.py --start_id 1 --end_id 10
+```
+*   Replace the start\_id and end\_id arguments with the desired range of ids to download
 
 #### parising by diapason pages
 for download around 100 book and render pages for review them on page you should type: 
