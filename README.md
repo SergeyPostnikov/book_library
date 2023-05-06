@@ -1,8 +1,9 @@
 Project Title
 =============
 
-Tululu.org books downloader, and tool for render site on you local computer.
-[online version](https://sergeypostnikov.github.io/book_library/pages/index1.html)
+Tululu.org books downloader, and tool for render site on you local computer.  
+
+deployed on Github pages [here](https://sergeypostnikov.github.io/book_library/pages/index1.html)
 
 Description
 -----------
@@ -47,5 +48,12 @@ if you open them by your browser, appear possibility to observe titles, authors 
 ![page](https://user-images.githubusercontent.com/60840361/236615903-fa7d9807-ac08-4995-9013-11c2bacda308.jpg)
 to read more about parse_tululu_category, read the docs [here](https://github.com/SergeyPostnikov/book_library/blob/main/parse_tululu_readme.md)
 
-#### 
+#### getting web pages by dev-server `livereload`
 
+after executing parse_tululu_category you'll get everything for working `render_website.py`
+script will provide your pages on live server.
+for start, execute:
+```
+python render_website.py
+```
+then on 'http://127.0.0.1:5500/pages/index1.html' will appear your [site](http://127.0.0.1:5500/pages/index1.html).
