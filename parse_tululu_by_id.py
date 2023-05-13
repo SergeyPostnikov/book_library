@@ -132,7 +132,7 @@ def get_book(book_id, folder, skip_txt=False, skip_imgs=False):
         book_path = download_txt(book_id, book_title, folder)
         book_page['book_path'] = book_path
     if not skip_imgs:
-        path_to_imgs = join(folder, 'images/')
+        path_to_imgs = join('media/', 'images/')
         image_src = download_image(book_page["image_url"], path_to_imgs)
         book_page['image_src'] = image_src
     return book_page
