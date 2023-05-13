@@ -13,8 +13,8 @@ from parse_tululu_by_id import BASE_DIR
 
 
 def prepare_pages(per_page: int, per_row: int, library_file: str) -> list:
-    with codecs.open(library_file, encoding="utf_8_sig") as f:
-        books = json.load(f)
+    with codecs.open(library_file, encoding="utf_8_sig") as file:
+        books = json.load(file)
     columns = [i for i in chunked(books, per_row)]
     chunk = chunked(columns, per_page // per_row)
     book_pages = [page for page in chunk]
@@ -29,8 +29,8 @@ def render_template(page_number, books, template='template.html'):
         'number': page_number,
     }
     rendered_page = template.render(page=serialized_page)
-    with open(rout, 'w', encoding="utf-8") as f:
-        f.write(rendered_page)
+    with open(rout, 'w', encoding="utf-8") as file:
+        file.write(rendered_page)
 
 
 def on_reload(folder='pages', library_file='library.json'):
@@ -57,8 +57,8 @@ def on_reload(folder='pages', library_file='library.json'):
 
         rendered_page = template.render(page=serialized_page)
 
-        with open(rout, 'w', encoding="utf-8") as f:
-            f.write(rendered_page)
+        with open(rout, 'w', encoding="utf-8") as file:
+            file.write(rendered_page)
         page_number += 1
 
 
