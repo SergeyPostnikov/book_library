@@ -34,7 +34,7 @@
           {% if page.number < page.ids[-1] %}
             <li class="page-item"><a class="page-link" tabindex="-1" href="./index{{page.number + 1}}.html">Next</a></li>
           {% else %}
-            <li class="page-item"><a class="page-link" href="#" tabindex="-1" disabled>Next</a></li>
+            <li class="page-item disabled"><a class="page-link" href="#" tabindex="-1" disabled>Next</a></li>
           {% endif %}
         </ul>
       </nav>
