@@ -11,7 +11,7 @@ from more_itertools import chunked
 from parse_tululu_by_id import BASE_DIR
 
 
-def get_books(per_page: int, per_row: int, ) -> list:
+def prepare_pages(per_page: int, per_row: int, ) -> list:
     with codecs.open('library.json', encoding="utf_8_sig") as f:
         books = json.load(f)
     columns = [i for i in chunked(books, per_row)]
@@ -37,7 +37,7 @@ def on_reload(folder='pages'):
     loader = FileSystemLoader('templates')
     env = Environment(loader=loader)
     template = env.get_template('template.html')
-    books_pages = get_books(per_page=8, per_row=2)
+    books_pages = prepare_pages(per_page=8, per_row=2)
     page_number = 1
 
     page_nums = [i for i in range(1, len(books_pages) + 1)]
