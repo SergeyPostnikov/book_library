@@ -1,12 +1,13 @@
 import codecs
 import json
 import os
+from os.path import join
 
 from jinja2 import Environment
 from jinja2 import FileSystemLoader
 from livereload import Server
 from more_itertools import chunked
-from os.path import join
+
 from parse_tululu_by_id import BASE_DIR
 
 
