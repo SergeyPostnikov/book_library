@@ -14,6 +14,7 @@ from parse_tululu_by_id import BASE_URL
 from parse_tululu_by_id import get_book
 from parse_tululu_by_id import get_page
 from render_website import on_reload
+from tqdm import tqdm
 
 
 def get_book_cards(response):
@@ -85,7 +86,7 @@ def get_arguments():
     parser.add_argument(
             '--dest_folder', 
             help='Folder for storing txt files of books',
-            default='books/'
+            default=join('media/', 'books/')
             )
 
     parser.add_argument(
@@ -120,7 +121,7 @@ def main():
     tries = 2 
     delay = 5
 
-    for link in links:
+    for link in tqdm(links, desc='Books uploading'):
         book_id = link.split('b')[1].replace('/', '')
         for _ in range(tries):
             try:
@@ -138,6 +139,7 @@ def main():
     
     if args.auto_render:
         on_reload()
+        print('books pages are succesfully rendered!')
 
 
 if __name__ == '__main__':

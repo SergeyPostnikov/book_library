@@ -107,7 +107,7 @@ def download_txt(book_id, filename, folder='books/'):
     return filepath
 
 
-def download_image(url, folder='images/'):
+def download_image(url, folder):
     filename = get_filename(url)
     response = requests.get(url)
     check_for_redirect(response)
@@ -123,7 +123,7 @@ def download_image(url, folder='images/'):
     return filepath
 
 
-def get_book(book_id, folder='books/', skip_txt=False, skip_imgs=False):
+def get_book(book_id, folder, skip_txt=False, skip_imgs=False):
     url = urljoin(BASE_URL, f'b{book_id}/')
     row_page = get_page(url)
     book_page = parse_book(row_page)
@@ -132,7 +132,8 @@ def get_book(book_id, folder='books/', skip_txt=False, skip_imgs=False):
         book_path = download_txt(book_id, book_title, folder)
         book_page['book_path'] = book_path
     if not skip_imgs:
-        image_src = download_image(book_page["image_url"])
+        path_to_imgs = join(folder, 'images/')
+        image_src = download_image(book_page["image_url"], path_to_imgs)
         book_page['image_src'] = image_src
     return book_page
 
