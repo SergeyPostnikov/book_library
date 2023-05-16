@@ -28,7 +28,7 @@ def parse_book_url(table):
     href = table.select_one('a')['href']
     book_url = urljoin(BASE_URL, href)
     return book_url
- 
+
 
 def get_links(start_page, end_page, digest_number):
     book_cards = []
@@ -51,7 +51,7 @@ def get_links(start_page, end_page, digest_number):
                 continue
             else:
                 break
-    
+
     for table in book_cards:
         book_url = parse_book_url(table)
         urls.append(book_url)
@@ -67,49 +67,52 @@ def save_catalog(library_catalog, folder):
 def get_arguments():
     parser = argparse.ArgumentParser(
         prog='library parser',
-        description='A script to download books and their covers from tululu.org',
-        epilog='usage: parse_tululu_category.py [--start_page START_ID] [--end_page END_ID]'
-        )
+        description='A script to download books \
+                     and their covers from tululu.org',
+        epilog='usage: current_script.py [--start_page n] [--end_page k]'
+    )
 
     parser.add_argument(
-            '--start_page', 
-            type=int, 
-            help='Nubmer of page for the start parsing',
-            default=1
-        )
+        '--start_page',
+        type=int,
+        help='Nubmer of page for the start parsing',
+        default=1
+    )
     parser.add_argument(
-            '--end_page', 
-            type=int, 
-            help='Nubmer of page for the stop parsing',
-            default=4) 
+        '--end_page',
+        type=int,
+        help='Nubmer of page for the stop parsing',
+        default=4)
 
     parser.add_argument(
-            '--dest_folder', 
-            help='Folder for storing txt files of books',
-            default=join('media/', 'books/')
-            )
+        '--dest_folder',
+        help='Folder for storing txt files of books',
+        default=join('media/', 'books/')
+    )
 
     parser.add_argument(
-            '--skip_imgs', 
-            help='Skip downloading title image of books',
-            action='store_true'
-            )
+        '--skip_imgs',
+        help='Skip downloading title image of books',
+        action='store_true'
+    )
 
     parser.add_argument(
-            '--skip_txt', 
-            help='Skip downloading text of books',
-            action='store_true'
-            ) 
+        '--skip_txt',
+        help='Skip downloading text of books',
+        action='store_true'
+    )
 
     parser.add_argument(
-            '--json_path', 
-            help='Folder for storing library.json ',
-            default=BASE_DIR)
+        '--json_path',
+        help='Folder for storing library.json ',
+        default=BASE_DIR
+    )
+
     parser.add_argument(
-            '--auto_render',
-            help='Choice render or not html pages',
-            action='store_true'
-    )             
+        '--auto_render',
+        help='Choice render or not html pages',
+        action='store_true'
+    )
     args = parser.parse_args()
     return args
 
@@ -118,25 +121,26 @@ def main():
     args = get_arguments()
     links = get_links(args.start_page, args.end_page, digest_number=55)
     library_catalog = []
-    tries = 2 
+    tries = 2
     delay = 5
 
     for link in tqdm(links, desc='Books uploading'):
         book_id = link.split('b')[1].replace('/', '')
         for _ in range(tries):
             try:
-                book_card = get_book(book_id, args.dest_folder, args.skip_txt, args.skip_imgs,)
+                book_card = get_book(
+                    book_id, args.dest_folder, args.skip_txt, args.skip_imgs,)
                 library_catalog.append(book_card)
-                break  
-            except HTTPError:  
+                break
+            except HTTPError:
                 print(f'Book with id {book_id}, does not exist.')
-                break  
+                break
             except ConnectionError:
                 print(f'Connection lost on book with id: {book_id}.')
                 time.sleep(delay)
 
     save_catalog(library_catalog, args.json_path)
-    
+
     if args.auto_render:
         on_reload()
         print('books pages are succesfully rendered!')
