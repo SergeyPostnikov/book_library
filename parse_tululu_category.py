@@ -67,8 +67,9 @@ def save_catalog(library_catalog, folder):
 def get_arguments():
     parser = argparse.ArgumentParser(
         prog='library parser',
-        description='A script to download books \
-                     and their covers from tululu.org',
+        description='''
+            A script to download books and their covers from tululu.org
+            ''',
         epilog='usage: current_script.py [--start_page n] [--end_page k]'
     )
 
